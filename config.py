@@ -2,6 +2,10 @@
 import argparse
 import os
 
+def set_dir(args):
+	if not os.path.exists(args.output):
+		os.makedirs(args.output)
+
 def get_args(time):
 	parser = argparse.ArgumentParser(description='Splice Site Prediction')
 

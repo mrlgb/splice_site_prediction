@@ -39,6 +39,7 @@ testset = torch.utils.data.TensorDataset(x_valid, y_valid)
 testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False, num_workers=2)
 
 # load our model
+print('loading model')
 model = None
 if args.model == 'resnet18':
     model = resnet18(False, True)
@@ -66,7 +67,7 @@ with torch.no_grad():
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
 
-print('Accuracy of the network on the test sequences: %d' % (100.0 * float(correct) / float(total)))
+print('Accuracy of the network on the test sequences: %f' % (100.0 * float(correct) / float(total)))
 
 # DSSP test
 correct = 0
@@ -136,7 +137,7 @@ with torch.no_grad():
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
 
-print('Accuracy of the DSSP on the test sequences: %d' % (100.0 * float(correct) / float(total)))
+print('Accuracy of the DSSP on the test sequences: %f' % (100.0 * float(correct) / float(total)))
 
 ipdb.set_trace()
 print('Finished Execution')

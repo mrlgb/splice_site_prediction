@@ -3,10 +3,11 @@ This repository is created for 2019 BME203 Intro to Bioinfo course individual pr
 ## Dataset
 This model uses the dataset specified in [HS3D](http://www.sci.unisannio.it/docenti/rampone/).
 
-true and false splite site files shall be saved in ./data directory
+true and false splice site files shall be saved in ./data directory
 
 ## Dependencies
-Pytorch for python 3.x should be installed.
+Pytorch for python 3.x should be installed. Please follow instructions on [official page](https://pytorch.org/get-started/locally/).
+
 To install all the other packages:
 ```
 pip install ipdb, scikit-learn, tqdm, numpy

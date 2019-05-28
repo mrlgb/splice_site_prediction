@@ -1,11 +1,11 @@
 import numpy as np
 import pickle
 import ipdb
-import tqdm
+from tqdm import tqdm
 from datetime import datetime
 
 from data_loader import Dataset
-from config import get_args
+from config import get_args, set_dir
 
 from resnet import resnet18, resnet34, resnet50
 from sklearn.model_selection import train_test_split
@@ -26,6 +26,7 @@ time = datetime.now().strftime('%m%d_%H%M%S')
 
 # parse arguments
 args = get_args(time)
+set_dir(args)
 
 # model parameters
 batch_size = 64
@@ -92,6 +93,7 @@ best_state_dict = None
 best_optimizer = None
 
 print('Start training')
+pbar = tqdm(total=int(args.epoch * len(y_train)/batch_size), desc='training')
 for epoch in range(args.epoch):
 	running_loss = 0.0
 	for i, data in enumerate(trainloader, 0):
@@ -123,6 +125,8 @@ for epoch in range(args.epoch):
 					'optimizer': optimizer.state_dict(),
 					}, os.path.join(args.output, 'checkpoint.pth.tar'))
 			running_loss = 0.0
+		pbar.update(1)
+pbar.close()
 
 # save best case
 print('saving best case')
@@ -147,7 +151,7 @@ with torch.no_grad():
 		correct += (predicted == labels).sum().item()
 
 print('total test cases: ' + str(total))
-print('Accuracy of the network on the test sequences: %d' % (
+print('Accuracy of the network on the test sequences: %f' % (
 			    float(100) * float(correct) / float(total)))
 
 ipdb.set_trace()
