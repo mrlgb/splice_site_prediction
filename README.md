@@ -31,6 +31,7 @@ python test.py -output output_directory_name
 Several metrics were estimated on the balanced(1:1 ratio of labels) dataset.
 
 | Model | Validation Acc | binary F1 | weighted F1 |
+| --- | --- | --- | ---|
 | resnet18-epoch15 | 82.870982 | 0.830501 | 0.828719 |
 | DSSP | 49.229414 | 0.000000 | 0.324807 |
 
