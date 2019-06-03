@@ -25,8 +25,8 @@ dataset = Dataset()
 
 true_ie_y = np.ones(len(dataset.true_ie_data))
 true_ei_y = np.ones(len(dataset.true_ei_data))
-false_ie_y = np.ones(len(dataset.false_ie_data))
-false_ei_y = np.ones(len(dataset.false_ei_data))
+false_ie_y = np.zeros(len(dataset.false_ie_data))
+false_ei_y = np.zeros(len(dataset.false_ei_data))
 
 x = np.concatenate((dataset.true_ie_data, dataset.true_ei_data, dataset.false_ie_data, dataset.false_ei_data), axis=0)
 y = np.concatenate((true_ie_y, true_ei_y, false_ie_y, false_ei_y), axis=0)
@@ -35,6 +35,7 @@ x_train, x_valid, y_train, y_valid = train_test_split(x, y, test_size=0.2, rando
 
 x_valid = torch.from_numpy(x_valid).type(torch.FloatTensor)
 y_valid = torch.from_numpy(y_valid).type(torch.LongTensor)
+
 testset = torch.utils.data.TensorDataset(x_valid, y_valid)
 testloader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False, num_workers=2)
 
@@ -48,6 +49,7 @@ elif args.model == 'resnet34':
 elif args.model == 'resnet50':
     model = resnet50(False, True)
 
+
 optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
 checkpoint = torch.load(os.path.join(args.output,'model_best.pth.tar'))
@@ -55,6 +57,8 @@ start_epoch = checkpoint['epoch']
 best_loss = checkpoint['best_loss']
 model.load_state_dict(checkpoint['state_dict'])
 optimizer.load_state_dict(checkpoint['optimizer'])
+
+model.to(device)
 
 # test
 correct = 0
@@ -79,9 +83,6 @@ as_dssp.load_weights(os.path.join(os.path.dirname(__file__), 'DS_model.hdf5'))
 ds_dssp = model_from_json(open(os.path.join(os.path.dirname(__file__), 'AS_model.json')).read())
 ds_dssp.load_weights(os.path.join(os.path.dirname(__file__), 'DS_model.hdf5'))
 
-ag_vec = dataset.one_hot('AG')
-gt_vec = dataset.one_hot('GT')
-
 # s: pytorch tensor with shape (10,15)
 def convert_to_dssp_format(s):
 	s = s.data.numpy()
@@ -104,29 +105,24 @@ def convert_to_dssp_format(s):
 			seq += 'N'
 		elif token=='000001':
 			seq += 'H'
-	
+
 	if len(seq) != 140:
-		print('Failed to conver to DSSP input format')
+		print('Failed to convert to DSSP input format')
 		exit(1)
 	seq_type = None
 	if seq[68:70] == 'AG':
 		seq_type = 'AS'
 	if seq[70:72] == 'GT':
 		seq_type == 'DS'
-	
-	BASE_KEY = {'A':0, 'C':1, 'G':2, 'T':3, 'N':4}
-	input_vec = np.zeros((1,140,5))
-	for i in range(len(seq)):
-		try:
-			input_vec[0][i][BASE_KEY[seq[i]]] = 1
-		except KeyError:
-			print('Wrong sequence token for DSSP')
+
+	input_vec = dataset.one_hot_dssp(seq)
 	return seq_type, input_vec
 
 with torch.no_grad():
 	for data in testloader:
 		# check donor/acceptor
-		seq_type, inputs, labels = convert_to_dssp_format(data[0]), data[1].data.numpy()
+		seq_type, inputs = convert_to_dssp_format(data[0])
+        labels = data[1].data.numpy()
 		if seq_type == 'AS': # AS case
 			model = as_dssp
 		elif seq_type == 'DS': # DS case
@@ -141,4 +137,3 @@ print('Accuracy of the DSSP on the test sequences: %f' % (100.0 * float(correct)
 
 ipdb.set_trace()
 print('Finished Execution')
-

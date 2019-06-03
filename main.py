@@ -6,8 +6,8 @@ from datetime import datetime
 
 from data_loader import Dataset
 from config import get_args, set_dir
-
 from resnet import resnet18, resnet34, resnet50
+
 from sklearn.model_selection import train_test_split
 
 import torch

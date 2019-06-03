@@ -26,8 +26,11 @@ class Dataset():
 		self.max_len = 140
 		self.num_class = 2
 
+		self.dssp_codes = {'A':0, 'C':1, 'G':2, 'T':3, 'N':4}
+		self.dssp_vec = np.zeros((1,140,5))
+
 		self.label_sheet = np.eye(self.num_class, dtype='int64')
-		
+
 		self.tmp_max_len = 140
 
 		if not os.path.isfile(self.true_ie_pickle_path):
@@ -36,7 +39,7 @@ class Dataset():
 			f = open(self.true_donor_file, 'r')
 			true_donor_data = f.readlines()
 			f.close()
-			
+
 			f = open(self.true_acceptor_file, 'r')
 			true_acceptor_data = f.readlines()
 			f.close()
@@ -48,7 +51,7 @@ class Dataset():
 			f = open(self.false_acceptor_file, 'r')
 			false_acceptor_data = f.readlines()
 			f.close()
-			
+
 			# parse
 			def parse_fasta(data):
 				result = []
@@ -76,27 +79,27 @@ class Dataset():
 			true_acceptor_list = parse_fasta(true_acceptor_data)
 			false_donor_list = parse_fasta(false_donor_data)
 			false_acceptor_list = parse_fasta(false_acceptor_data)
-	
+
 			print('true donor data: ' + str(true_donor_list.shape))
 			print('true acceptor data: ' + str(true_acceptor_list.shape))
 			print('false donor data: ' + str(false_donor_list.shape))
 			print('false acceptor data: ' + str(false_acceptor_list.shape))
-			
+
 			#print('max len: ' + str(self.tmp_max_len)) # 140
 
 			# save data
 			with open(self.true_ei_pickle_path, 'wb') as f:
 				pickle.dump(true_donor_list, f, pickle.HIGHEST_PROTOCOL)
-			
+
 			with open(self.true_ie_pickle_path, 'wb') as f:
 				pickle.dump(true_acceptor_list, f, pickle.HIGHEST_PROTOCOL)
-			
+
 			with open(self.false_ei_pickle_path, 'wb') as f:
 				pickle.dump(false_donor_list, f, pickle.HIGHEST_PROTOCOL)
-			
+
 			with open(self.false_ie_pickle_path, 'wb') as f:
 				pickle.dump(false_acceptor_list, f, pickle.HIGHEST_PROTOCOL)
-				
+
 		# load data
 		print('loading data')
 		with open(self.true_ei_pickle_path, 'rb') as f:
@@ -123,3 +126,11 @@ class Dataset():
 				print(c)
 		return str2vec.flatten()
 
+	def one_hot_dssp(self, s):
+		input_vec = self.dssp_vec
+		for i in range(len(s)):
+			try:
+				input_vec[0][i][self.dssp_codes[s[i]]] = 1
+			except KeyError:
+				print('Wrong sequence token for DSSP')
+		return input_vec
