@@ -75,14 +75,16 @@ with torch.no_grad():
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
 
-		predicts.append(predicted)
+		predicts += predicted.cpu().data.numpy().tolist()
 		pbar.update(1)
 	pbar.close()
 
 print('Accuracy of the network on the test sequences: %f' % (100.0 * float(correct) / float(total)))
 
-print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='binary')))
-print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='weighted')))
+predicts = np.array(predicts)
+f1_labels = np.array([0,1])
+print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, labels=f1_labels, average='binary')))
+print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, labels=f1_labels, average='weighted')))
 
 del model
 
@@ -175,7 +177,7 @@ with torch.no_grad():
 
 print('Accuracy of the DSSP on the test sequences: %f' % (100.0 * float(correct) / float(total)))
 
-print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, average='binary')))
-print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, average='weighted')))
+print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, labels=f1_labels, average='binary')))
+print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, labels=f1_labels, average='weighted')))
 
 print('Finished Execution')

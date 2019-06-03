@@ -44,14 +44,12 @@ false_ie_y = np.zeros(len(dataset.false_ie_data))
 false_ei_y = np.zeros(len(dataset.false_ei_data))
 
 # prepare true,false dataset with specified ratio
-x = np.concatenate((dataset.true_ie_data, dataset.true_ei_data, dataset.false_ie_data, dataset.false_ei_data), axis=0)
-y = np.concatenate((true_ie_y, true_ei_y, false_ie_y, false_ei_y), axis=0)
+#x = np.concatenate((dataset.true_ie_data, dataset.true_ei_data, dataset.false_ie_data, dataset.false_ei_data), axis=0)
+#y = np.concatenate((true_ie_y, true_ei_y, false_ie_y, false_ei_y), axis=0)
 
-"""
 # 1:1 ratio
 x = np.concatenate((dataset.true_ie_data, dataset.true_ei_data, dataset.false_ie_data[:len(dataset.true_ie_data)], dataset.false_ei_data[:len(dataset.true_ei_data)]), axis=0)
 y = np.concatenate((true_ie_y, true_ei_y, false_ie_y[:len(dataset.true_ie_data)], false_ei_y[:len(dataset.true_ei_data)]), axis=0)
-"""
 
 x_train, x_valid, y_train, y_valid = train_test_split(x, y, test_size=0.2, random_state=42)
 print('training set size: ' + str(len(y_train)))
@@ -158,14 +156,16 @@ with torch.no_grad():
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
 
-		predicts.append(predicted)
+		predicts += predicted.cpu().data.numpy().tolist()
 
 print('total test cases: ' + str(total))
 print('Accuracy of the network on the test sequences: %f' % (
 			    float(100) * float(correct) / float(total)))
 
-print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='binary')))
-print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='weighted')))
+predicts = np.array(predicts)
+f1_labels = np.array([0,1])
+print('binary f1 score: %f' % (f1_score(y_valid.data.numpy(), predicts, labels=f1_labels, average='binary')))
+print('weighted f1 score: %f' % (f1_score(y_valid.data.numpy(), predicts, labels=f1_labels, average='weighted')))
 
 ipdb.set_trace()
 print('Finished Execution')
