@@ -13,6 +13,7 @@ from resnet import resnet18, resnet34, resnet50
 
 from keras.models import model_from_json
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 
 time = datetime.now().strftime('%m%d_%H%M%S')
 args = get_args(time)
@@ -64,6 +65,7 @@ model.to(device)
 # test
 correct = 0
 total = 0
+predicts=[]
 with torch.no_grad():
 	pbar = tqdm(total=len(y_valid)/batch_size, desc='computing validation set score')
 	for data in testloader:
@@ -72,10 +74,15 @@ with torch.no_grad():
 		_, predicted = torch.max(outputs.data, 1)
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
+
+		predicts.append(predicted)
 		pbar.update(1)
 	pbar.close()
 
 print('Accuracy of the network on the test sequences: %f' % (100.0 * float(correct) / float(total)))
+
+print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='binary')))
+print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='weighted')))
 
 del model
 
@@ -139,7 +146,7 @@ def convert_to_dssp_format(s):
 
 correct=0
 total=0
-
+dssp_predicts=[]
 with torch.no_grad():
 	pbar = tqdm(total=len(y_valid), desc='computing DSSP score')
 	for data in testloader:
@@ -161,9 +168,14 @@ with torch.no_grad():
 			predicted = 1 if predict>0.5 else 0
 			total += 1
 			correct += (predicted == y)
+
+			dssp_predicts.append(predicted)
 			pbar.update(1)
 	pbar.close()
 
 print('Accuracy of the DSSP on the test sequences: %f' % (100.0 * float(correct) / float(total)))
+
+print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, average='binary')))
+print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), dssp_predicts, average='weighted')))
 
 print('Finished Execution')

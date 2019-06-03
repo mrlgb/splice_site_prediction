@@ -6,9 +6,10 @@ from datetime import datetime
 
 from data_loader import Dataset
 from config import get_args, set_dir
-from resnet import resnet18, resnet34, resnet50
+from resnet import resnet18, resnet34, resnet50, resnet101
 
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 
 import torch
 import torch.nn as nn
@@ -79,16 +80,22 @@ class Net(nn.Module):
 resnet = None
 if args.model == 'resnet18':
 	resnet = resnet18(False, True)
+	print('use resnet18')
 elif args.model == 'resnet34':
 	resnet = resnet34(False, True)
+	print('use resnet34')
 elif args.model == 'resnet50':
 	resnet = resnet50(False, True)
+	print('use resnet50')
+elif args.model == 'resnet101':
+	resnet = resnet101(False, True)
+	print('use resnet101')
 resnet.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(resnet.parameters(), lr=lr, momentum=0.9)
 
 # train
-best = 99
+best = 999.99
 best_state_dict = None
 best_optimizer = None
 
@@ -133,7 +140,7 @@ print('saving best case')
 save_checkpoint({
 		'epoch': epoch,
 		'best_loss': best,
-		'sate_dict': best_state_dict,
+		'state_dict': best_state_dict,
 		'optimizer': best_optimizer,
 		}, os.path.join(args.output, 'model_best.pth.tar'))
 
@@ -142,6 +149,7 @@ print('Finished Training')
 # test
 correct = 0
 total = 0
+predicts = []
 with torch.no_grad():
 	for data in testloader:
 		inputs, labels = data[0].unsqueeze(1).to(device), data[1].to(device)
@@ -150,9 +158,14 @@ with torch.no_grad():
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
 
+		predicts.append(predicted)
+
 print('total test cases: ' + str(total))
 print('Accuracy of the network on the test sequences: %f' % (
 			    float(100) * float(correct) / float(total)))
+
+print('binary f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='binary')))
+print('weighted f1 score: %f' % (f1_score(data[1].data.numpy(), predicts, average='weighted')))
 
 ipdb.set_trace()
 print('Finished Execution')

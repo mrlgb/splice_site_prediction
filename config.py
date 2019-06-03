@@ -10,7 +10,7 @@ def get_args(time):
 	parser = argparse.ArgumentParser(description='Splice Site Prediction')
 
 	# model config
-	parser.add_argument('-model', type=str, default='resnet34', choices=['resnet18', 'resnet34', 'resnet50'], help='resnet model selection')
+	parser.add_argument('-model', type=str, default='resnet34', choices=['resnet18', 'resnet34', 'resnet50', 'resnet101'], help='resnet model selection')
 
 	parser.add_argument('-epoch', type=int, default=2, help='training epochs')
 
